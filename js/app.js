@@ -134,7 +134,7 @@
             return UNSEONG_NAMES[(ganIdx % 2 === 0) ? (jiIdx - startJi + 12) % 12 : (startJi - jiIdx + 12) % 12];
         }
 
-        let CURRENT_SAJU = null, isPanoramaMode = false, lastActiveTabId = 'tab-oheng';
+        let CURRENT_SAJU = null, isPanoramaMode = false, lastActiveTabId = 'tab-oheng', ACTIVE_SAJU_TAB_ID = 'oheng';
 
                 
 
@@ -1845,7 +1845,7 @@ function closeMobileMenu() {
 // ==========================================================================
 // 🧭 [신규 추가] 30대 그랜드 운세 대시보드 1-카드 선택 및 샘플 체험 무삭제 연동 시스템
 // ==========================================================================
-let ACTIVE_SAJU_TAB_ID = 'oheng'; // 현재 선택된 리포트 카드 ID (기본값: 오행)
+// ACTIVE_SAJU_TAB_ID is already declared at top
 
 function selectSajuMenu(tabId) {
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
