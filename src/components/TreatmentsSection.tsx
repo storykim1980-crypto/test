@@ -67,6 +67,8 @@ export const TreatmentsSection: React.FC<TreatmentsSectionProps> = ({
           </div>
         </div>
 
+        <p className="text-xs text-[#526558]">이미지는 진료 안내용입니다. 인물 사진은 AI 모델 이미지이며 실제 환자 또는 치료 결과 사진이 아닙니다.</p>
+
         {/* Filter Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {categories.map((cat) => (

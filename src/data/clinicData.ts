@@ -1,3 +1,12 @@
+import heroImage from '../assets/images/hero_dentart_clinic_1791846640841.jpg';
+import treatmentSuiteImage from '../assets/images/treatment_suite_modern_1791846642395.jpg';
+import patientSmileImage from '../assets/images/patient-korean.jpg';
+import doctorLeadImage from '../assets/images/doctor-korean.jpg';
+import doctorWarmImage from '../assets/images/doctor-korean.jpg';
+import clinicTeamImage from '../assets/images/team-korean.jpg';
+import treatmentRoomImage from '../assets/images/neighborhood_dental_chair_1791850927585.jpg';
+import staffTeamImage from '../assets/images/team-korean.jpg';
+
 export type Language = 'ko' | 'en';
 
 export interface TreatmentItem {
@@ -43,14 +52,14 @@ export interface StaffMember {
 }
 
 export const CLINIC_IMAGES = {
-  hero: '/src/assets/images/hero_dentart_clinic_1791846640841.jpg',
-  treatmentSuite: '/src/assets/images/treatment_suite_modern_1791846642395.jpg',
-  patientSmile: '/src/assets/images/patient_smiling_natural_1791847230807.jpg',
-  doctorLead: '/src/assets/images/doctor_korean_prostho_1791846641559.jpg',
-  doctorWarm: '/src/assets/images/doctor_neighborhood_warm_1791850927783.jpg',
-  clinicTeam: '/src/assets/images/clinic_team_doctors_1791847233256.jpg',
-  treatmentRoom: '/src/assets/images/neighborhood_dental_chair_1791850927585.jpg',
-  staffTeam: '/src/assets/images/clinic_staff_neighborhood_team_1791850928465.jpg',
+  hero: heroImage,
+  treatmentSuite: treatmentSuiteImage,
+  patientSmile: patientSmileImage,
+  doctorLead: doctorLeadImage,
+  doctorWarm: doctorWarmImage,
+  clinicTeam: clinicTeamImage,
+  treatmentRoom: treatmentRoomImage,
+  staffTeam: staffTeamImage,
 };
 
 export const TREATMENTS: TreatmentItem[] = [

@@ -37,10 +37,11 @@ export const MedicalTeamSection: React.FC<MedicalTeamProps> = ({
           <div className="lg:col-span-5 aspect-[4/5] sm:aspect-square lg:aspect-auto h-full bg-[#E8EDE7] relative overflow-hidden group">
             <img
               src={leadDoctor.image}
-              alt={leadDoctor.name[currentLang]}
+              alt="한국인 치과의사 콘셉트 AI 모델 이미지 — 실제 의료진 아님"
               className="w-full h-full object-cover object-top group-hover:scale-102 transition-transform duration-700"
               referrerPolicy="no-referrer"
             />
+            <div className="absolute bottom-4 left-4 right-4 rounded-lg bg-white/95 px-3 py-2 text-xs text-[#122A1F]">AI 모델 이미지 · 실제 의료진 사진이 아닙니다.</div>
             <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#122A1F] shadow-xs">
               {leadDoctor.badge[currentLang]}
             </div>
@@ -108,6 +109,11 @@ export const MedicalTeamSection: React.FC<MedicalTeamProps> = ({
               접수 및 보험 청구 1명, 보건복지부 면허 치과위생사 2명으로 구성되어 환자 한 분 한 분께 집중합니다.
             </p>
           </div>
+
+          <figure className="overflow-hidden rounded-3xl border border-[#DEE5DF] bg-[#FAF9F5]">
+            <img src={CLINIC_IMAGES.staffTeam} alt="한국인 치과 4인 전담팀 콘셉트 AI 모델 이미지" className="w-full aspect-[3/2] sm:aspect-[16/9] object-cover object-center" loading="lazy" />
+            <figcaption className="px-5 py-3 text-xs text-[#526558]">AI 모델 이미지 · 전담팀의 분위기를 표현한 이미지이며 실제 직원 사진이 아닙니다.</figcaption>
+          </figure>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {CLINICAL_STAFF.map((staff, idx) => (
