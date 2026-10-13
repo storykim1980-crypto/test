@@ -1,516 +1,555 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, User, Phone, CheckCircle2, AlertCircle, ArrowLeft, Trash2, Search } from 'lucide-react';
-import { BookingData } from '../types/dental';
-import { CLINIC_INFO } from '../data/dentalData';
+import { TREATMENTS, Language } from '../data/clinicData';
+import { 
+  saveAppointment, 
+  getStoredAppointments, 
+  cancelAppointment, 
+  findAppointmentByCode, 
+  generateGoogleCalendarLink,
+  Appointment 
+} from '../data/bookingService';
+import { 
+  X, 
+  Calendar, 
+  Clock, 
+  Phone, 
+  CheckCircle2, 
+  AlertCircle, 
+  Search, 
+  ExternalLink, 
+  Trash2, 
+  ChevronRight, 
+  ShieldCheck,
+  Sparkles
+} from 'lucide-react';
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialTreatment?: string;
-  initialTab?: 'book' | 'check';
+  currentLang: Language;
+  initialTreatmentId?: string;
 }
 
 export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
-  initialTreatment = '',
-  initialTab = 'book',
+  currentLang,
+  initialTreatmentId,
 }) => {
-  const [activeTab, setActiveTab] = useState<'book' | 'check'>(initialTab);
-  const [step, setStep] = useState<number>(1);
+  const [activeTab, setActiveTab] = useState<'new' | 'lookup'>('new');
+  const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // New Booking State
-  const [treatmentType, setTreatmentType] = useState<string>(
-    initialTreatment || '디지털 네비게이션 임플란트'
+  const [selectedTreatmentId, setSelectedTreatmentId] = useState<string>(
+    initialTreatmentId || TREATMENTS[0].id
   );
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>('2026-10-21');
+  const [selectedTime, setSelectedTime] = useState<string>('10:30');
   const [patientName, setPatientName] = useState<string>('');
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [isFirstVisit, setIsFirstVisit] = useState<boolean>(true);
-  const [symptomNotes, setSymptomNotes] = useState<string>('');
-  const [completedBooking, setCompletedBooking] = useState<BookingData | null>(null);
+  const [phone, setPhone] = useState<string>('');
+  const [symptoms, setSymptoms] = useState<string>('');
+  const [confirmedBooking, setConfirmedBooking] = useState<Appointment | null>(null);
 
   // Lookup state
-  const [lookupPhone, setLookupPhone] = useState<string>('');
-  const [userBookings, setUserBookings] = useState<BookingData[]>([]);
-  const [lookupSearched, setLookupSearched] = useState<boolean>(false);
+  const [lookupCode, setLookupCode] = useState<string>('');
+  const [lookedUpAppt, setLookedUpAppt] = useState<Appointment | null>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
 
   useEffect(() => {
-    if (initialTreatment) {
-      setTreatmentType(initialTreatment);
+    if (initialTreatmentId) {
+      setSelectedTreatmentId(initialTreatmentId);
+      setCurrentStep(2);
     }
-    setActiveTab(initialTab);
-  }, [initialTreatment, initialTab, isOpen]);
-
-  // Set default minimum date (tomorrow)
-  useEffect(() => {
-    const today = new Date();
-    today.setDate(today.getDate() + 1);
-    const dateStr = today.toISOString().split('T')[0];
-    setSelectedDate(dateStr);
-  }, []);
+    if (isOpen) {
+      setAllAppointments(getStoredAppointments());
+    }
+  }, [initialTreatmentId, isOpen]);
 
   if (!isOpen) return null;
 
-  const treatments = [
-    '디지털 네비게이션 임플란트',
-    '자연치아 보존 & 미세현미경 신경치료',
-    '안심 당일 고난도 사랑니 발치',
-    '투명 교정 & 맞춤 치아교정',
-    '예방 클리닉 & 국민건강보험 스케일링',
-    '원데이 심미보철 & 라미네이트 / 미백',
-    '일반 충치 치료 / 턱관절 검진'
+  const currentTreatment = TREATMENTS.find((t) => t.id === selectedTreatmentId) || TREATMENTS[0];
+
+  const availableTimeSlots = [
+    { time: '10:00', label: '10:00 AM' },
+    { time: '10:30', label: '10:30 AM' },
+    { time: '11:30', label: '11:30 AM' },
+    { time: '14:30', label: '02:30 PM' },
+    { time: '15:30', label: '03:30 PM' },
+    { time: '16:30', label: '04:30 PM' },
+    { time: '19:00', label: '07:00 PM (화 야간)' },
+    { time: '19:30', label: '07:30 PM (화 야간)' },
   ];
 
-  // Time slots generator
-  const getTimeSlots = (dateString: string) => {
-    if (!dateString) return [];
-    const date = new Date(dateString);
-    const day = date.getDay(); // 0: 일, 2: 화, 4: 목, 6: 토
-
-    if (day === 0) return []; // Sunday closed
-
-    // Base morning slots
-    const morning = ['10:00', '10:30', '11:00', '11:30', '12:00'];
-    
-    // Saturday afternoon
-    if (day === 6) {
-      return [...morning, '12:30', '13:00', '13:30'];
-    }
-
-    // Weekdays afternoon
-    const afternoon = ['14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'];
-
-    // Tuesday / Thursday evening clinics
-    if (day === 2 || day === 4) {
-      const evening = ['18:30', '19:00', '19:30', '20:00'];
-      return [...morning, ...afternoon, ...evening];
-    }
-
-    return [...morning, ...afternoon];
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    const date = new Date(val);
-    if (date.getDay() === 0) {
-      alert('일요일은 정기 휴진일입니다. 월~토요일 중 선택해주세요.');
-      return;
-    }
-    setSelectedDate(val);
-    setSelectedTime('');
-  };
-
-  const handleSaveBooking = (e: React.FormEvent) => {
+  const handleCompleteBooking = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!patientName.trim() || !phoneNumber.trim()) {
-      alert('성함과 연락처를 올바르게 입력해주세요.');
-      return;
-    }
-    if (!selectedTime) {
-      alert('진료 희망 시간대를 선택해주세요.');
-      return;
-    }
+    if (!patientName || !phone) return;
 
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const bookingId = `KIM-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${randomSuffix}`;
-
-    const newBooking: BookingData = {
-      id: bookingId,
-      patientName: patientName.trim(),
-      phoneNumber: phoneNumber.trim(),
-      treatmentType,
+    const newAppt = saveAppointment({
+      patientName,
+      phone,
+      email: '',
+      countryCode: '+82',
+      language: currentLang,
+      treatmentId: currentTreatment.id,
+      treatmentName: currentTreatment.name[currentLang],
+      doctorId: 'dr-kim',
+      doctorName: '김태훈 대표원장 (1:1 책임진료)',
       date: selectedDate,
-      timeSlot: selectedTime,
-      isFirstVisit,
-      symptomNotes: symptomNotes.trim(),
-      status: '접수',
-      createdAt: new Date().toLocaleString('ko-KR')
-    };
+      time: selectedTime,
+      symptoms: symptoms || '온라인 간편 예약 신청',
+      estimatedPriceKrw: currentTreatment.priceKrw,
+    });
 
-    // Save to localStorage
-    const saved = localStorage.getItem('kim_dental_bookings');
-    const existing: BookingData[] = saved ? JSON.parse(saved) : [];
-    localStorage.setItem('kim_dental_bookings', JSON.stringify([newBooking, ...existing]));
-
-    setCompletedBooking(newBooking);
-    setStep(3); // success step
+    setConfirmedBooking(newAppt);
+    setAllAppointments(getStoredAppointments());
+    setCurrentStep(4);
   };
 
-  const handleSearchBookings = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanSearch = lookupPhone.replace(/[^0-9]/g, '');
-    if (cleanSearch.length < 4) {
-      alert('연락처 뒤 4자리 이상을 입력해주세요.');
-      return;
-    }
-
-    const saved = localStorage.getItem('kim_dental_bookings');
-    if (saved) {
-      const list: BookingData[] = JSON.parse(saved);
-      const matches = list.filter((b) => b.phoneNumber.replace(/[^0-9]/g, '').includes(cleanSearch));
-      setUserBookings(matches);
+  const handleLookup = () => {
+    setLookupError(null);
+    if (!lookupCode.trim()) return;
+    const found = findAppointmentByCode(lookupCode);
+    if (found) {
+      setLookedUpAppt(found);
     } else {
-      setUserBookings([]);
-    }
-    setLookupSearched(true);
-  };
-
-  const handleCancelBooking = (id: string) => {
-    if (!confirm('정말로 예약을 취소하시겠습니까?')) return;
-    const saved = localStorage.getItem('kim_dental_bookings');
-    if (saved) {
-      const list: BookingData[] = JSON.parse(saved);
-      const updated = list.map((b) => b.id === id ? { ...b, status: '취소' as const } : b);
-      localStorage.setItem('kim_dental_bookings', JSON.stringify(updated));
-      setUserBookings(updated.filter((b) => b.phoneNumber.replace(/[^0-9]/g, '').includes(lookupPhone.replace(/[^0-9]/g, ''))));
+      setLookedUpAppt(null);
+      setLookupError('일치하는 예약 정보를 찾을 수 없습니다. 예약번호를 확인해 주세요.');
     }
   };
 
-  const resetForm = () => {
-    setStep(1);
-    setCompletedBooking(null);
-    setPatientName('');
-    setPhoneNumber('');
-    setSymptomNotes('');
-    onClose();
+  const handleCancelBooking = (code: string) => {
+    if (confirm('예약을 취소하시겠습니까?')) {
+      cancelAppointment(code);
+      setAllAppointments(getStoredAppointments());
+      if (lookedUpAppt && lookedUpAppt.bookingCode === code) {
+        setLookedUpAppt({ ...lookedUpAppt, status: 'cancelled' });
+      }
+    }
   };
-
-  const timeSlots = getTimeSlots(selectedDate);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-      <div
-        className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Top Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-[#D5DFD7] overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 bg-[#FAF9F5] border-b border-[#E7ECE5] flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              {activeTab === 'book' ? '김치과의원 빠른 진료 예약' : '예약 내역 조회 및 변경'}
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              원하시는 날짜와 시간에 맞춰 전문의 1:1 진료를 예약해 드립니다.
+            <div className="flex items-center gap-2">
+              <span className="font-serif text-lg font-bold text-[#122A1F]">DentArt</span>
+              <span className="text-[11px] font-semibold tracking-wider uppercase text-[#2E6B47] bg-[#EBF1EC] px-2 py-0.5 rounded-full">
+                덴트아트 치과의원
+              </span>
+            </div>
+            <p className="text-[11px] text-[#55695D] font-light">
+              대표원장 1:1 책임 진료 · 실시간 온라인 상담 및 예약
             </p>
           </div>
           <button
-            onClick={resetForm}
-            className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+            onClick={onClose}
+            className="p-2 text-[#5E7165] hover:text-[#122A1F] rounded-full hover:bg-[#EAEFE8] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Tab switcher */}
-        <div className="px-6 pt-3 bg-white border-b border-slate-100 flex gap-4 text-xs font-semibold">
+        {/* Tab Switcher */}
+        <div className="flex border-b border-[#E7ECE5] bg-[#FAF9F5] px-6 gap-6">
           <button
-            onClick={() => setActiveTab('book')}
-            className={`pb-2.5 border-b-2 cursor-pointer transition-colors ${
-              activeTab === 'book'
-                ? 'border-teal-600 text-teal-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+            onClick={() => setActiveTab('new')}
+            className={`py-3 text-xs sm:text-sm font-bold border-b-2 cursor-pointer transition-all ${
+              activeTab === 'new' ? 'border-[#122A1F] text-[#122A1F]' : 'border-transparent text-[#65796E]'
             }`}
           >
-            신규 진료 예약하기
+            새 진료 예약 신청
           </button>
           <button
-            onClick={() => setActiveTab('check')}
-            className={`pb-2.5 border-b-2 cursor-pointer transition-colors ${
-              activeTab === 'check'
-                ? 'border-teal-600 text-teal-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+            onClick={() => setActiveTab('lookup')}
+            className={`py-3 text-xs sm:text-sm font-bold border-b-2 cursor-pointer transition-all ${
+              activeTab === 'lookup' ? 'border-[#122A1F] text-[#122A1F]' : 'border-transparent text-[#65796E]'
             }`}
           >
-            기존 예약 조회 / 취소
+            예약 번호 조회 & 변경
           </button>
         </div>
 
-        {/* Body Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'book' ? (
-            <div>
-              {/* STEP 1 & 2: Booking Form */}
-              {step < 3 && (
-                <form onSubmit={handleSaveBooking} className="space-y-5">
-                  {/* Step 1: Treatment */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-800 mb-2">
-                      1. 진료 과목 선택
-                    </label>
-                    <select
-                      value={treatmentType}
-                      onChange={(e) => setTreatmentType(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+        {/* Tab Body */}
+        <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+          {activeTab === 'new' ? (
+            <div className="space-y-6">
+              {/* Step indicator */}
+              <div className="flex items-center justify-between max-w-md mx-auto mb-6">
+                {[
+                  { step: 1, label: '진료과목 선택' },
+                  { step: 2, label: '일정 선택' },
+                  { step: 3, label: '환자 정보' },
+                  { step: 4, label: '예약 완료' },
+                ].map((s) => (
+                  <div key={s.step} className="flex flex-col items-center gap-1">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                        currentStep === s.step
+                          ? 'bg-[#122A1F] text-white shadow-xs'
+                          : currentStep > s.step
+                          ? 'bg-[#2E6B47] text-white'
+                          : 'bg-[#EBF0EB] text-[#718579]'
+                      }`}
                     >
-                      {treatments.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
+                      {currentStep > s.step ? '✓' : s.step}
+                    </div>
+                    <span className="text-[10px] text-[#55695D] font-medium hidden sm:inline">
+                      {s.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Step 1: Select Treatment */}
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <div className="text-center space-y-1">
+                    <h4 className="font-serif text-xl font-bold text-[#122A1F]">
+                      어떤 치료 상담을 원하시나요?
+                    </h4>
+                    <p className="text-xs text-[#526458] font-light">
+                      과잉진료 없이 환자분께 꼭 필요한 치료만 권해 드립니다.
+                    </p>
                   </div>
 
-                  {/* Step 2: Date & Time */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-800 mb-2">
-                        2. 희망 진료 일자
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        value={selectedDate}
-                        onChange={handleDateChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-teal-500"
-                      />
-                      <span className="text-[11px] text-slate-400 mt-1 block">
-                        * 일요일/공휴일은 휴진입니다
-                      </span>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-800 mb-2">
-                        3. 희망 시간대
-                      </label>
-                      <select
-                        value={selectedTime}
-                        onChange={(e) => setSelectedTime(e.target.value)}
-                        required
-                        className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg bg-white focus:outline-hidden focus:ring-2 focus:ring-teal-500"
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                    {TREATMENTS.map((t) => (
+                      <div
+                        key={t.id}
+                        onClick={() => setSelectedTreatmentId(t.id)}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                          selectedTreatmentId === t.id
+                            ? 'border-[#122A1F] bg-[#F4F7F4] shadow-xs'
+                            : 'border-[#DEE5DF] hover:border-[#ADC7B5] bg-white'
+                        }`}
                       >
-                        <option value="">시간대를 선택하세요</option>
-                        {timeSlots.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                      </select>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#CBD6CE] text-[#122A1F]">
+                              {t.categoryLabel[currentLang]}
+                            </span>
+                            <span className="text-[11px] font-semibold text-[#2E6B47]">
+                              {t.warrantyYears}년 보증
+                            </span>
+                          </div>
+                          <h5 className="font-serif text-sm font-bold text-[#122A1F]">
+                            {t.name[currentLang]}
+                          </h5>
+                          <p className="text-[11px] text-[#5A6E60] line-clamp-2 font-light">
+                            {t.tagline[currentLang]}
+                          </p>
+                        </div>
+                        <div className="pt-2 text-[11px] font-bold text-[#122A1F]">
+                          {t.priceKrw}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <button
+                      onClick={() => setCurrentStep(2)}
+                      className="bg-[#122A1F] hover:bg-[#1D3E2F] text-white px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>일정 선택하기</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Date & Time Picker */}
+              {currentStep === 2 && (
+                <div className="space-y-6 max-w-xl mx-auto">
+                  <div className="text-center space-y-1">
+                    <h4 className="font-serif text-xl font-bold text-[#122A1F]">
+                      희망 내원 일정을 선택해 주세요
+                    </h4>
+                    <p className="text-xs text-[#526458] font-light">
+                      화요일은 저녁 8시 30분까지 야간진료가 가능합니다.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-[#122A1F] block">
+                      날짜 선택
+                    </label>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full bg-white border border-[#CBD6CE] rounded-xl px-4 py-2.5 text-xs text-[#122A1F] focus:outline-none focus:border-[#122A1F]"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-[#122A1F] block">
+                      시간대 선택
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {availableTimeSlots.map((slot) => (
+                        <button
+                          key={slot.time}
+                          type="button"
+                          onClick={() => setSelectedTime(slot.time)}
+                          className={`py-2.5 px-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                            selectedTime === slot.time
+                              ? 'bg-[#122A1F] text-white border-[#122A1F] shadow-xs'
+                              : 'bg-white text-[#4A5E51] border-[#CBD6CE] hover:border-[#122A1F]'
+                          }`}
+                        >
+                          {slot.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Step 3: Patient Info */}
-                  <div className="pt-2 border-t border-slate-100 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                          환자 성함
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="성함을 입력하세요"
-                          value={patientName}
-                          onChange={(e) => setPatientName(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-teal-500"
-                        />
-                      </div>
+                  <div className="flex justify-between pt-4">
+                    <button
+                      onClick={() => setCurrentStep(1)}
+                      className="px-5 py-2.5 rounded-full border border-[#CBD6CE] text-[#55695D] text-xs font-semibold hover:bg-[#FAF9F5] cursor-pointer"
+                    >
+                      이전 단계
+                    </button>
+                    <button
+                      onClick={() => setCurrentStep(3)}
+                      className="bg-[#122A1F] hover:bg-[#1D3E2F] text-white px-6 py-2.5 rounded-full text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>환자 정보 입력</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
 
-                      <div>
-                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                          연락처 (휴대전화)
-                        </label>
-                        <input
-                          type="tel"
-                          required
-                          placeholder="010-1234-5678"
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-teal-500"
-                        />
-                      </div>
-                    </div>
-
-                    {/* First visit toggle */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                        내원 이력
-                      </label>
-                      <div className="flex gap-3">
-                        <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="visit"
-                            checked={isFirstVisit}
-                            onChange={() => setIsFirstVisit(true)}
-                            className="accent-teal-600"
-                          />
-                          <span>김치과 처음 방문 (초진)</span>
-                        </label>
-                        <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="visit"
-                            checked={!isFirstVisit}
-                            onChange={() => setIsFirstVisit(false)}
-                            className="accent-teal-600"
-                          />
-                          <span>이전 방문 이력 있음 (재진)</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Symptom notes */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                        증상 메모 (선택사항)
-                      </label>
-                      <textarea
-                        rows={2}
-                        placeholder="예: 오른쪽 아래 어금니가 찬물 마실 때 시려요, 사랑니 발치 희망합니다 등"
-                        value={symptomNotes}
-                        onChange={(e) => setSymptomNotes(e.target.value)}
-                        className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-teal-500"
-                      />
-                    </div>
+              {/* Step 3: Patient Info Form */}
+              {currentStep === 3 && (
+                <form onSubmit={handleCompleteBooking} className="space-y-4 max-w-xl mx-auto">
+                  <div className="text-center space-y-1">
+                    <h4 className="font-serif text-xl font-bold text-[#122A1F]">
+                      환자 연락처 및 증상 입력
+                    </h4>
+                    <p className="text-xs text-[#526458] font-light">
+                      예약 확인 문자 발송을 위해 정확한 정보를 입력해 주세요.
+                    </p>
                   </div>
 
-                  {/* Submission */}
-                  <div className="pt-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[#122A1F] block">
+                      성함 <span className="text-[#2E6B47]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="예: 홍길동"
+                      value={patientName}
+                      onChange={(e) => setPatientName(e.target.value)}
+                      className="w-full bg-white border border-[#CBD6CE] rounded-xl px-4 py-2.5 text-xs text-[#122A1F] focus:outline-none focus:border-[#122A1F]"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[#122A1F] block">
+                      휴대전화 번호 <span className="text-[#2E6B47]">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="010-0000-0000"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full bg-white border border-[#CBD6CE] rounded-xl px-4 py-2.5 text-xs text-[#122A1F] focus:outline-none focus:border-[#122A1F]"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[#122A1F] block">
+                      주요 증상 및 전달사항 (선택)
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="예: 마취 통증이 무서워요 / 앞니 벌어짐으로 상담 원해요"
+                      value={symptoms}
+                      onChange={(e) => setSymptoms(e.target.value)}
+                      className="w-full bg-white border border-[#CBD6CE] rounded-xl p-3 text-xs text-[#122A1F] focus:outline-none focus:border-[#122A1F] resize-none"
+                    />
+                  </div>
+
+                  <div className="flex justify-between pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(2)}
+                      className="px-5 py-2.5 rounded-full border border-[#CBD6CE] text-[#55695D] text-xs font-semibold hover:bg-[#FAF9F5] cursor-pointer"
+                    >
+                      이전 단계
+                    </button>
                     <button
                       type="submit"
-                      className="w-full py-3.5 text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs transition-colors cursor-pointer"
+                      className="bg-[#122A1F] hover:bg-[#1D3E2F] text-white px-7 py-2.5 rounded-full text-xs font-semibold shadow-md cursor-pointer"
                     >
-                      진료 예약 신청하기
+                      예약 신청 완료
                     </button>
-                    <p className="text-[11px] text-slate-400 text-center mt-2">
-                      * 접수 후 원내에서 예약 확인 및 확정 알림톡/문자를 발송해 드립니다.
-                    </p>
                   </div>
                 </form>
               )}
 
-              {/* STEP 3: Booking Confirmed Success Card */}
-              {step === 3 && completedBooking && (
-                <div className="space-y-6 text-center py-4">
-                  <div className="w-14 h-14 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-8 h-8" />
+              {/* Step 4: Booking Confirmation */}
+              {currentStep === 4 && confirmedBooking && (
+                <div className="text-center space-y-6 max-w-lg mx-auto py-4">
+                  <div className="w-16 h-16 rounded-full bg-[#EBF1EC] text-[#2E6B47] flex items-center justify-center mx-auto shadow-inner">
+                    <CheckCircle2 className="w-9 h-9" />
                   </div>
 
-                  <div>
-                    <h4 className="text-xl font-bold text-slate-900">
-                      진료 예약이 정상 접수되었습니다!
+                  <div className="space-y-2">
+                    <h4 className="font-serif text-2xl font-bold text-[#122A1F]">
+                      진료 예약 신청이 완료되었습니다
                     </h4>
-                    <p className="text-xs text-slate-600 mt-1">
-                      예약 번호: <span className="font-bold text-teal-700 tabular-nums">{completedBooking.id}</span>
+                    <p className="text-xs text-[#526458] font-light">
+                      예약 확인 코드는 <strong className="font-mono text-[#122A1F] font-bold">{confirmedBooking.bookingCode}</strong>입니다. 
+                      담당 코디네이터가 30분 이내에 사전 확인 문자를 드립니다.
                     </p>
                   </div>
 
-                  {/* Card summary */}
-                  <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-left text-xs space-y-2.5 max-w-md mx-auto">
-                    <div className="flex justify-between py-1 border-b border-slate-200/60">
-                      <span className="text-slate-500">환자명</span>
-                      <span className="font-bold text-slate-900">{completedBooking.patientName} ({completedBooking.isFirstVisit ? '초진' : '재진'})</span>
+                  <div className="p-5 rounded-2xl bg-[#FAF9F5] border border-[#DEE5DF] text-xs text-left space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-[#65796D]">환자명:</span>
+                      <strong className="text-[#122A1F]">{confirmedBooking.patientName}</strong>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-slate-200/60">
-                      <span className="text-slate-500">진료과목</span>
-                      <span className="font-bold text-teal-800">{completedBooking.treatmentType}</span>
+                    <div className="flex justify-between">
+                      <span className="text-[#65796D]">진료과목:</span>
+                      <span className="font-semibold text-[#122A1F]">{confirmedBooking.treatmentName}</span>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-slate-200/60">
-                      <span className="text-slate-500">예약일시</span>
-                      <span className="font-bold text-slate-900 tabular-nums">
-                        {completedBooking.date} ({completedBooking.timeSlot})
-                      </span>
+                    <div className="flex justify-between">
+                      <span className="text-[#65796D]">전담의:</span>
+                      <span className="text-[#122A1F]">{confirmedBooking.doctorName}</span>
                     </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-slate-500">병원 위치</span>
-                      <span className="font-medium text-slate-700">{CLINIC_INFO.address}</span>
+                    <div className="flex justify-between">
+                      <span className="text-[#65796D]">예약일시:</span>
+                      <span className="font-semibold text-[#2E6B47]">{confirmedBooking.date} {confirmedBooking.time}</span>
                     </div>
                   </div>
 
-                  {/* Guidance */}
-                  <div className="p-4 bg-teal-50/70 border border-teal-100 rounded-xl text-left text-xs text-teal-900 leading-relaxed">
-                    <p className="font-bold mb-1">내원 전 안내사항</p>
-                    <p>
-                      원활한 진료 접수를 위해 예약 시간 10분 전까지 4층 접수처로 내원해주시기 바랍니다.
-                      일정 변경 또는 취소가 필요하신 경우 언제든 전화({CLINIC_INFO.phone}) 또는 웹사이트에서 조회하여 취소하실 수 있습니다.
-                    </p>
-                  </div>
-
-                  <div className="flex gap-3 justify-center">
-                    <button
-                      onClick={resetForm}
-                      className="px-6 py-2.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg"
+                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <a
+                      href={generateGoogleCalendarLink(confirmedBooking)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 bg-[#122A1F] text-white px-5 py-2.5 rounded-full text-xs font-semibold hover:bg-[#1D3E2F] transition-colors"
                     >
-                      확인 완료
+                      <Calendar className="w-4 h-4 text-[#79D29B]" />
+                      <span>구글 캘린더 등록</span>
+                    </a>
+
+                    <button
+                      onClick={onClose}
+                      className="px-6 py-2.5 rounded-full border border-[#CBD6CE] text-[#55695D] text-xs font-semibold hover:bg-[#FAF9F5] cursor-pointer"
+                    >
+                      창 닫기
                     </button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            /* TAB 2: Check / Cancel Booking */
-            <div className="space-y-6">
-              <form onSubmit={handleSearchBookings} className="flex gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="tel"
-                    required
-                    placeholder="예약 시 입력하신 휴대전화번호 (예: 01012345678)"
-                    value={lookupPhone}
-                    onChange={(e) => setLookupPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
+            /* Lookup Tab */
+            <div className="space-y-6 max-w-xl mx-auto">
+              <div className="text-center space-y-1">
+                <h4 className="font-serif text-xl font-bold text-[#122A1F]">
+                  예약 번호 조회 및 관리
+                </h4>
+                <p className="text-xs text-[#526458] font-light">
+                  발급받으신 예약 코드(예: DENT-2026-XXXX)를 입력해 주세요.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="예: DENT-2026-8812"
+                  value={lookupCode}
+                  onChange={(e) => setLookupCode(e.target.value)}
+                  className="flex-1 bg-white border border-[#CBD6CE] rounded-xl px-4 py-2.5 text-xs text-[#122A1F] focus:outline-none focus:border-[#122A1F]"
+                />
                 <button
-                  type="submit"
-                  className="px-4 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                  onClick={handleLookup}
+                  className="bg-[#122A1F] text-white px-5 py-2.5 rounded-xl text-xs font-semibold hover:bg-[#1D3E2F] cursor-pointer flex items-center gap-1.5"
                 >
-                  <Search className="w-3.5 h-3.5" />
-                  <span>예약 조회</span>
+                  <Search className="w-4 h-4 text-[#79D29B]" />
+                  <span>조회</span>
                 </button>
-              </form>
+              </div>
 
-              {lookupSearched && (
-                <div>
-                  {userBookings.length === 0 ? (
-                    <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-500">
-                      입력하신 번호로 등록된 예약 내역이 없습니다.
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-bold text-slate-700">조회된 예약 내역 ({userBookings.length}건)</h4>
-                      {userBookings.map((b) => (
-                        <div
-                          key={b.id}
-                          className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-                        >
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-slate-900">{b.patientName} 님</span>
-                              <span
-                                className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
-                                  b.status === '취소'
-                                    ? 'bg-rose-100 text-rose-700'
-                                    : 'bg-teal-100 text-teal-800'
-                                }`}
-                              >
-                                {b.status}
-                              </span>
-                            </div>
-                            <p className="text-teal-700 font-semibold">{b.treatmentType}</p>
-                            <p className="text-slate-500 tabular-nums">
-                              {b.date} · {b.timeSlot}
-                            </p>
-                          </div>
+              {lookupError && (
+                <div className="p-3.5 rounded-xl bg-[#FFF5F5] border border-[#FAD2D2] text-xs text-[#C53030] flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{lookupError}</span>
+                </div>
+              )}
 
-                          {b.status !== '취소' && (
-                            <button
-                              onClick={() => handleCancelBooking(b.id)}
-                              className="px-3 py-1.5 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-medium flex items-center justify-center gap-1 self-start sm:self-auto cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>예약 취소</span>
-                            </button>
-                          )}
-                        </div>
-                      ))}
+              {lookedUpAppt && (
+                <div className="p-5 rounded-2xl bg-[#FAF9F5] border border-[#DEE5DF] space-y-3 text-xs">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E7EBE4]">
+                    <span className="font-mono font-bold text-[#122A1F]">{lookedUpAppt.bookingCode}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full font-bold ${
+                        lookedUpAppt.status === 'confirmed'
+                          ? 'bg-[#EBF1EC] text-[#2E6B47]'
+                          : 'bg-[#FBE8E8] text-[#C53030]'
+                      }`}
+                    >
+                      {lookedUpAppt.status === 'confirmed' ? '예약 확정' : '취소 완료'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p><strong className="text-[#122A1F]">환자명:</strong> {lookedUpAppt.patientName}</p>
+                    <p><strong className="text-[#122A1F]">진료 과목:</strong> {lookedUpAppt.treatmentName}</p>
+                    <p><strong className="text-[#122A1F]">예약 일시:</strong> {lookedUpAppt.date} {lookedUpAppt.time}</p>
+                    <p><strong className="text-[#122A1F]">담당:</strong> {lookedUpAppt.doctorName}</p>
+                  </div>
+
+                  {lookedUpAppt.status === 'confirmed' && (
+                    <div className="pt-3 border-t border-[#E7EBE4] flex justify-end">
+                      <button
+                        onClick={() => handleCancelBooking(lookedUpAppt.bookingCode)}
+                        className="text-xs text-[#C53030] hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>예약 취소하기</span>
+                      </button>
                     </div>
                   )}
                 </div>
               )}
+
+              {/* Seed / History List Preview */}
+              <div className="pt-4 border-t border-[#E7EBE4] space-y-2">
+                <span className="text-[11px] font-bold text-[#55695D] uppercase tracking-wider block">
+                  최근 예약 내역 ({allAppointments.length})
+                </span>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {allAppointments.map((a) => (
+                    <div
+                      key={a.id}
+                      onClick={() => {
+                        setLookupCode(a.bookingCode);
+                        setLookedUpAppt(a);
+                        setLookupError(null);
+                      }}
+                      className="p-3 rounded-xl bg-white border border-[#E0E6E1] hover:border-[#122A1F] transition-all cursor-pointer flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <span className="font-semibold text-[#122A1F]">{a.patientName}</span>
+                        <span className="text-[#65796E] ml-2 font-mono text-[11px]">{a.bookingCode}</span>
+                        <p className="text-[11px] text-[#55695D]">{a.treatmentName}</p>
+                      </div>
+                      <span className="text-[11px] font-medium text-[#2E6B47]">{a.date}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>

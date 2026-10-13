@@ -1,109 +1,110 @@
 import React, { useState } from 'react';
+import { Language } from './data/clinicData';
 import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { Philosophy } from './components/Philosophy';
-import { DoctorIntro } from './components/DoctorIntro';
-import { Treatments } from './components/Treatments';
-import { DentalGuide } from './components/DentalGuide';
-import { FacilityTech } from './components/FacilityTech';
-import { Reviews } from './components/Reviews';
-import { FaqSection } from './components/FaqSection';
-import { LocationInfo } from './components/LocationInfo';
+import { HeroSection } from './components/HeroSection';
+import { TreatmentsSection } from './components/TreatmentsSection';
+import { RecentWorkSliderSection } from './components/RecentWorkSliderSection';
+import { ProcessSection } from './components/ProcessSection';
+import { MedicalTeamSection } from './components/MedicalTeamSection';
+import { PricingWarrantySection } from './components/PricingWarrantySection';
+import { ConsultFormAndFaqSection } from './components/ConsultFormAndFaqSection';
 import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
-import { NonCoveredPricesModal } from './components/NonCoveredPricesModal';
 
 export default function App() {
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [bookingInitialTreatment, setBookingInitialTreatment] = useState('');
-  const [bookingInitialTab, setBookingInitialTab] = useState<'book' | 'check'>('book');
-  const [isPricesOpen, setIsPricesOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState<Language>('ko');
+  const [activeSection, setActiveSection] = useState<string>('hero');
+  
+  // Interactive Booking Modal
+  const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
+  const [preselectedTreatment, setPreselectedTreatment] = useState<string | undefined>(undefined);
 
-  const handleOpenBooking = (treatmentName: string = '') => {
-    setBookingInitialTreatment(treatmentName);
-    setBookingInitialTab('book');
+  const handleOpenBooking = (treatmentId?: string) => {
+    setPreselectedTreatment(treatmentId);
     setIsBookingOpen(true);
   };
 
-  const handleOpenCheckBooking = () => {
-    setBookingInitialTab('check');
-    setIsBookingOpen(true);
-  };
-
-  const handleScrollToDiagnosis = () => {
-    const el = document.getElementById('diagnosis');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+  const handleNavigate = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    } else if (sectionId === 'hero') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-teal-100 selection:text-teal-900">
-      {/* Top Navbar */}
+    <div className="min-h-screen flex flex-col bg-[#FCFCFA] text-[#122A1F] font-sans antialiased selection:bg-[#122A1F] selection:text-white">
+      {/* 1. Header Navigation Bar */}
       <Navbar
-        onOpenBooking={() => handleOpenBooking('')}
-        onOpenPrices={() => setIsPricesOpen(true)}
-        onOpenCheckBooking={handleOpenCheckBooking}
+        currentLang={currentLang}
+        onLanguageChange={setCurrentLang}
+        onOpenBooking={() => handleOpenBooking()}
+        activeSection={activeSection}
+        onNavigate={handleNavigate}
       />
 
-      {/* Main Content Sections */}
       <main className="flex-1">
-        {/* 1. Hero Section */}
-        <Hero
-          onOpenBooking={() => handleOpenBooking('')}
-          onScrollToDiagnosis={handleScrollToDiagnosis}
+        {/* 2. Hero Section: Editorial typography & clinic visual */}
+        <div id="hero">
+          <HeroSection
+            currentLang={currentLang}
+            onOpenBooking={() => handleOpenBooking()}
+            onExploreTreatments={() => handleNavigate('treatments')}
+          />
+        </div>
+
+        {/* 3. Treatments Showcase: Matching DentArt /treatments page with 4 dimensions (Cost, Duration, Precautions, Warranty) */}
+        <TreatmentsSection
+          currentLang={currentLang}
+          onSelectTreatmentForBooking={(treatmentId) => handleOpenBooking(treatmentId)}
         />
 
-        {/* 2. Philosophy & 4 Core Principles */}
-        <Philosophy />
-
-        {/* 3. Medical Director Introduction */}
-        <DoctorIntro
-          onOpenBooking={() => handleOpenBooking('')}
+        {/* 4. Interactive Before & After Work Slider: Drag & compare smile transformations */}
+        <RecentWorkSliderSection
+          currentLang={currentLang}
+          onOpenBooking={() => handleOpenBooking()}
         />
 
-        {/* 4. Clinical Treatments */}
-        <Treatments
-          onOpenBookingWithTreatment={(treatment) => handleOpenBooking(treatment)}
+        {/* 5. 3-Step Treatment Process: "Your smile, your solution" */}
+        <ProcessSection
+          currentLang={currentLang}
+          onOpenBooking={() => handleOpenBooking()}
         />
 
-        {/* 5. Symptom Checker & Health Insurance Calculator */}
-        <DentalGuide
-          onOpenBookingWithTreatment={(treatment) => handleOpenBooking(treatment)}
+        {/* 6. Medical Team: 1 Doctor + 1 Receptionist + 2 Hygienists in DentArt Luxury Editorial Style */}
+        <MedicalTeamSection
+          currentLang={currentLang}
+          onOpenBooking={() => handleOpenBooking()}
         />
 
-        {/* 6. Facility, Advanced Tech & Infection Control */}
-        <FacilityTech />
+        {/* 7. Transparent Fee Schedule & 10-Year Warranty */}
+        <PricingWarrantySection
+          currentLang={currentLang}
+          onOpenBooking={() => handleOpenBooking()}
+        />
 
-        {/* 7. Real Patient Reviews & Submission */}
-        <Reviews />
-
-        {/* 8. Frequently Asked Questions */}
-        <FaqSection />
-
-        {/* 9. Location, Hours & Parking */}
-        <LocationInfo
-          onOpenBooking={() => handleOpenBooking('')}
+        {/* 8. Split Consult Booking Card & Real Clinical FAQ */}
+        <ConsultFormAndFaqSection
+          currentLang={currentLang}
+          onOpenBookingModal={() => handleOpenBooking()}
         />
       </main>
 
-      {/* Footer */}
+      {/* 9. DentArt Dark Forest Green Footer */}
       <Footer
-        onOpenPrices={() => setIsPricesOpen(true)}
-        onOpenBooking={() => handleOpenBooking('')}
+        currentLang={currentLang}
+        onNavigate={handleNavigate}
+        onOpenBooking={() => handleOpenBooking()}
       />
 
-      {/* Interactive Modals */}
+      {/* 10. Interactive Multi-step Booking & Code Lookup Modal */}
       <BookingModal
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
-        initialTreatment={bookingInitialTreatment}
-        initialTab={bookingInitialTab}
-      />
-
-      <NonCoveredPricesModal
-        isOpen={isPricesOpen}
-        onClose={() => setIsPricesOpen(false)}
+        currentLang={currentLang}
+        initialTreatmentId={preselectedTreatment}
       />
     </div>
   );

@@ -1,105 +1,145 @@
 import React from 'react';
-import { CLINIC_INFO } from '../data/dentalData';
+import { Language } from '../data/clinicData';
+import { Phone, Mail, MapPin, Clock, Calendar, Sparkles } from 'lucide-react';
 
 interface FooterProps {
-  onOpenPrices: () => void;
+  currentLang: Language;
+  onNavigate: (sectionId: string) => void;
   onOpenBooking: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenPrices, onOpenBooking }) => {
+export const Footer: React.FC<FooterProps> = ({
+  currentLang,
+  onNavigate,
+  onOpenBooking,
+}) => {
   return (
-    <footer className="bg-slate-950 text-slate-400 text-xs border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 border-b border-slate-800/80">
-          {/* Brand Info */}
-          <div className="md:col-span-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white font-bold text-sm">
-                김
+    <footer className="bg-[#122A1F] text-[#E0EAE3] pt-16 pb-12 border-t border-[#1C3A2D]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        {/* Top Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-[#214233]">
+          {/* Brand Info (5 cols) */}
+          <div className="lg:col-span-5 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#1F4532] text-white flex items-center justify-center font-serif text-lg font-bold shadow-xs">
+                D
               </div>
-              <span className="text-lg font-bold text-white tracking-tight">
-                {CLINIC_INFO.name}
-              </span>
+              <div>
+                <span className="font-serif text-2xl font-bold tracking-tight text-white block">
+                  DentArt
+                </span>
+                <span className="text-[11px] text-[#79D29B] font-medium tracking-wider uppercase">
+                  덴트아트 치과의원
+                </span>
+              </div>
             </div>
-            <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
-              보건복지부 인증 치과 전문의 1:1 전담 진료. 과잉진료 없는 정직한 진단과 자연치아 보존을 최우선으로 합니다.
+
+            <p className="text-xs text-[#A8C2B3] font-light leading-relaxed max-w-sm">
+              치아는 한 번 깎아내면 되돌릴 수 없습니다. 
+              0.1mm 최소삭제 원칙과 대학병원급 3D 디지털 장비로 환자분의 자연치아를 평생 지켜드리는 정직한 1:1 책임 치과입니다.
             </p>
-            <div className="pt-2 text-slate-300">
-              <span className="block text-slate-500 text-[11px]">진료 예약 및 대표 문의</span>
-              <a
-                href={`tel:${CLINIC_INFO.phone}`}
-                className="text-xl font-bold text-white tabular-nums hover:text-teal-400 transition-colors"
+
+            <div className="pt-2">
+              <button
+                onClick={onOpenBooking}
+                className="inline-flex items-center gap-2 bg-white text-[#122A1F] hover:bg-[#F0F5F2] px-6 py-2.5 rounded-full text-xs font-semibold tracking-wide transition-all shadow-md cursor-pointer"
               >
-                {CLINIC_INFO.phone}
-              </a>
+                <Calendar className="w-4 h-4 text-[#2E6B47]" />
+                <span>1:1 상담 예약하기</span>
+              </button>
             </div>
           </div>
 
-          {/* Quick Menu */}
-          <div className="md:col-span-3 space-y-2">
-            <span className="font-bold text-white text-xs block mb-3">빠른 진료 메뉴</span>
-            <ul className="space-y-1.5 text-xs text-slate-400">
+          {/* Quick Links (3 cols) */}
+          <div className="lg:col-span-3 space-y-4 text-xs">
+            <h4 className="font-bold text-white uppercase tracking-wider text-xs">
+              진료 안내
+            </h4>
+            <ul className="space-y-2.5 text-[#B2CABE] font-light">
               <li>
-                <a href="#doctor" className="hover:text-white transition-colors">전문의료진 소개</a>
+                <button
+                  onClick={() => onNavigate('treatments')}
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
+                  최소삭제 세라믹 라미네이트
+                </button>
               </li>
               <li>
-                <a href="#treatments" className="hover:text-white transition-colors">특화 진료 과목 안내</a>
+                <button
+                  onClick={() => onNavigate('treatments')}
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
+                  인비절라인® 디지털 투명교정
+                </button>
               </li>
               <li>
-                <a href="#diagnosis" className="hover:text-white transition-colors">증상별 자가진단 리포트</a>
+                <button
+                  onClick={() => onNavigate('treatments')}
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
+                  자연치아 보존 미세현미경 치료
+                </button>
               </li>
               <li>
-                <a href="#insurance" className="hover:text-white transition-colors">국민건강보험 혜택 계산기</a>
+                <button
+                  onClick={() => onNavigate('treatments')}
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
+                  3D 컴퓨터 네비게이션 임플란트
+                </button>
               </li>
               <li>
-                <a href="#facility" className="hover:text-white transition-colors">첨단 3D 장비 및 멸균 시스템</a>
-              </li>
-              <li>
-                <a href="#location" className="hover:text-white transition-colors">오시는 길 및 주차 안내</a>
+                <button
+                  onClick={() => onNavigate('pricing')}
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
+                  국민건강보험 급여 항목 & 수가표
+                </button>
               </li>
             </ul>
           </div>
 
-          {/* Compliance Links & Actions */}
-          <div className="md:col-span-4 space-y-3">
-            <span className="font-bold text-white text-xs block mb-2">환자 권리 및 고지</span>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <button
-                onClick={onOpenPrices}
-                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 rounded-lg cursor-pointer transition-colors"
-              >
-                비급여 진료비용 비치 안내
-              </button>
-              <button
-                onClick={onOpenBooking}
-                className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg cursor-pointer transition-colors font-semibold"
-              >
-                온라인 빠른 진료 예약
-              </button>
-            </div>
-            <div className="pt-2 text-[11px] text-slate-400 leading-relaxed">
-              <span>개인정보보호책임자: 김진우 | 의료기관 개설신고: {CLINIC_INFO.licenseNumber}</span>
-              <br />
-              <span>사업자등록번호: {CLINIC_INFO.bizNumber}</span>
+          {/* Hours & Contact (4 cols) */}
+          <div className="lg:col-span-4 space-y-4 text-xs">
+            <h4 className="font-bold text-white uppercase tracking-wider text-xs">
+              진료시간 및 위치 안내
+            </h4>
+            <div className="space-y-3 text-[#B2CABE] font-light">
+              <div className="flex items-start gap-2.5">
+                <Clock className="w-4 h-4 text-[#79D29B] shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  <p>평일: 09:30 - 18:30 (점심시간 13:00 - 14:00)</p>
+                  <p><strong className="text-[#79D29B] font-semibold">화요일 야간진료: 09:30 - 20:30</strong></p>
+                  <p>토요일: 09:30 - 14:00 (점심시간 없이 진료)</p>
+                  <p className="text-[11px] text-[#7A9988]">일요일 및 공휴일 휴진</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <MapPin className="w-4 h-4 text-[#79D29B] shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  서울 강남구 테헤란로 152 강남타워 4층<br />
+                  (지하철 2호선 역삼역 3번 출구 도보 1분 · 건물 내 무료 발렛 주차)
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <Phone className="w-4 h-4 text-[#79D29B] shrink-0" />
+                <a href="tel:02-882-2875" className="font-bold text-white hover:text-[#79D29B] transition-colors">
+                  02-882-2875
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Legal Disclaimer Required by Korean Medical Act */}
-        <div className="pt-8 text-[11px] text-slate-400 leading-relaxed space-y-3">
-          <p>
-            [의료법 준수 고지] 본 웹사이트의 모든 의료 정보 및 임상 콘텐츠는 의료법 제56조 및 동법 시행령을 철저히 준수하여 제작되었습니다.
-            모든 치과 시술 및 치료는 환자의 개인 구강 상태, 골밀도, 전신 질환(당뇨, 고혈압 등)에 따라 출혈, 신경 손상, 부종, 감각 이상 등의 부작용이 발생할 수 있으므로,
-            치료 전 담당 치과의사와의 면밀한 진단 및 상담을 거친 후 신중하게 결정하시기 바랍니다.
-          </p>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-slate-400 gap-2 pt-2">
-            <p>
-              {CLINIC_INFO.address} | 대표전화: {CLINIC_INFO.phone} | 응급 직통: {CLINIC_INFO.emergencyPhone}
-            </p>
-            <p className="tabular-nums">
-              Copyright © 2026 {CLINIC_INFO.name}. All rights reserved.
-            </p>
+        {/* Bottom Legal Bar */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#7E998B] font-light">
+          <div>
+            <p>상호명: 덴트아트 치과의원 | 대표자: 김태훈 | 사업자등록번호: 211-14-89210</p>
+            <p>의료기관 개설허가번호: 제2024-3250012호 | 개인정보관리책임자: 이지영</p>
           </div>
+          <p>© 2026 DentArt Aesthetic & Restorative Dental Studio. All rights reserved.</p>
         </div>
       </div>
     </footer>

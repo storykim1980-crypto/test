@@ -1,6 +1,6 @@
 {
-  "name": "김치과의원",
-  "description": "과잉진료 없는 정직한 진료, 보건복지부 인증 치과 전문의 1:1 맞춤 진료 및 자연치아 보존 김치과 공식 홈페이지",
+  "name": "서울 참좋은치과의원 - 과잉진료 없는 우리동네 치과",
+  "description": "원장이 바뀌지 않는 1인 전담 우리동네 치과의원. 대표원장 1인과 접수실장 및 전담 치위생사 2인으로 구성된 4인 전담팀이 건강보험 스케일링, 자연치아 보존 충치치료, 만 65세 보험 임플란트를 정직하게 진료합니다.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
