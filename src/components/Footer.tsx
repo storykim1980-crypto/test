@@ -18,8 +18,9 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-[#214233]">
-          {/* Brand Info (5 cols) */}
-          <div className="lg:col-span-5 space-y-5">
+          {/* Brand Info (4 cols) */}
+          <div className="lg:col-span-4 flex flex-col justify-between gap-6">
+            <div className="space-y-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-[#1F4532] text-white flex items-center justify-center font-serif text-lg font-bold shadow-xs">
                 D
@@ -34,12 +35,13 @@ export const Footer: React.FC<FooterProps> = ({
               </div>
             </div>
 
-            <p className="text-xs text-[#A8C2B3] font-light leading-relaxed max-w-sm">
-              치아는 한 번 깎아내면 되돌릴 수 없습니다. 
+            <p className="text-xs text-[#A8C2B3] font-light leading-relaxed max-w-sm break-keep">
+              치아는 한 번 깎아내면 되돌릴 수 없습니다.
               0.1mm 최소삭제 원칙과 대학병원급 3D 디지털 장비로 환자분의 자연치아를 평생 지켜드리는 정직한 1:1 책임 치과입니다.
             </p>
+            </div>
 
-            <div className="pt-2">
+            <div>
               <button
                 onClick={onOpenBooking}
                 className="inline-flex items-center gap-2 bg-white text-[#122A1F] hover:bg-[#F0F5F2] px-6 py-2.5 rounded-full text-xs font-semibold tracking-wide transition-all shadow-md cursor-pointer"
@@ -50,15 +52,15 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
           </div>
 
-          {/* Quick Links (3 cols) */}
-          <div className="lg:col-span-3 space-y-4 text-xs">
+          {/* Quick Links (4 cols) */}
+          <div className="lg:col-span-4 space-y-4 text-xs">
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">
               진료 안내
             </h4>
-            <ul className="space-y-2.5 text-[#B2CABE] font-light">
+            <ul className="space-y-3.5 text-[#B2CABE] font-light">
               <li>
                 <button
-                  onClick={() => onNavigate('treatments')}
+                  onClick={() => onOpenBooking()}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   최소삭제 세라믹 라미네이트
@@ -66,7 +68,7 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('treatments')}
+                  onClick={() => onOpenBooking()}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   인비절라인® 디지털 투명교정
@@ -74,7 +76,7 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('treatments')}
+                  onClick={() => onOpenBooking()}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   자연치아 보존 미세현미경 치료
@@ -82,7 +84,7 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('treatments')}
+                  onClick={() => onOpenBooking()}
                   className="hover:text-white transition-colors cursor-pointer"
                 >
                   3D 컴퓨터 네비게이션 임플란트
@@ -104,7 +106,7 @@ export const Footer: React.FC<FooterProps> = ({
             <h4 className="font-bold text-white uppercase tracking-wider text-xs">
               진료시간 및 위치 안내
             </h4>
-            <div className="space-y-3 text-[#B2CABE] font-light">
+            <div className="space-y-4 text-[#B2CABE] font-light">
               <div className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-[#79D29B] shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
@@ -117,7 +119,7 @@ export const Footer: React.FC<FooterProps> = ({
 
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#79D29B] shrink-0 mt-0.5" />
-                <p className="leading-relaxed">
+                <p className="leading-relaxed break-keep">
                   서울 강남구 테헤란로 152 강남타워 4층<br />
                   (지하철 2호선 역삼역 3번 출구 도보 1분 · 건물 내 무료 발렛 주차)
                 </p>

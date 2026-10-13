@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Language } from './data/clinicData';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
-import { TreatmentsSection } from './components/TreatmentsSection';
 import { RecentWorkSliderSection } from './components/RecentWorkSliderSection';
 import { ProcessSection } from './components/ProcessSection';
 import { MedicalTeamSection } from './components/MedicalTeamSection';
@@ -53,12 +52,6 @@ export default function App() {
             onExploreTreatments={() => handleNavigate('treatments')}
           />
         </div>
-
-        {/* 3. Treatments Showcase: Matching DentArt /treatments page with 4 dimensions (Cost, Duration, Precautions, Warranty) */}
-        <TreatmentsSection
-          currentLang={currentLang}
-          onSelectTreatmentForBooking={(treatmentId) => handleOpenBooking(treatmentId)}
-        />
 
         {/* 4. Interactive Before & After Work Slider: Drag & compare smile transformations */}
         <RecentWorkSliderSection

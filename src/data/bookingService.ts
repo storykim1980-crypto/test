@@ -20,46 +20,7 @@ export interface Appointment {
 
 const STORAGE_KEY = 'dentart_appointments_v3';
 
-const SEED_APPOINTMENTS: Appointment[] = [
-  {
-    id: 'appt-demo-1',
-    bookingCode: 'DENT-2026-8812',
-    patientName: '이현정 님',
-    phone: '010-3841-9921',
-    email: 'hyunjung@example.com',
-    countryCode: '+82',
-    language: 'ko',
-    treatmentId: 'minimal-prep-veneers',
-    treatmentName: '최소삭제 세라믹 라미네이트',
-    doctorId: 'dr-kim',
-    doctorName: '김태훈 대표원장',
-    date: '2026-10-21',
-    time: '10:30',
-    symptoms: '앞니 틈새와 변색 개선을 위한 3D 구강스캔 및 1:1 상담 희망',
-    estimatedPriceKrw: '₩650,000 ~ ₩800,000 / 치아당',
-    createdAt: '2026-10-10T09:30:00.000Z',
-    status: 'confirmed',
-  },
-  {
-    id: 'appt-demo-2',
-    bookingCode: 'DENT-2026-9430',
-    patientName: '박준호 님',
-    phone: '010-8291-3320',
-    email: 'junho@example.com',
-    countryCode: '+82',
-    language: 'ko',
-    treatmentId: 'invisalign-clear-aligner',
-    treatmentName: '인비절라인® 정품 투명교정',
-    doctorId: 'dr-kim',
-    doctorName: '김태훈 대표원장',
-    date: '2026-10-23',
-    time: '14:30',
-    symptoms: '비발치 투명교정 ClinCheck 3D 시뮬레이션 상담 희망',
-    estimatedPriceKrw: '부분교정 ₩350만~ / 전체교정 ₩550만~',
-    createdAt: '2026-10-11T14:15:00.000Z',
-    status: 'confirmed',
-  },
-];
+const SEED_APPOINTMENTS: Appointment[] = [];
 
 export function getStoredAppointments(): Appointment[] {
   if (typeof window === 'undefined') return SEED_APPOINTMENTS;

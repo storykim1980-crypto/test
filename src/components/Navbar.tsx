@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Language } from '../data/clinicData';
-import { Phone, Calendar, Menu, X, Sparkles, Clock } from 'lucide-react';
+import { Calendar, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   currentLang: Language;
@@ -18,7 +18,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { id: 'treatments', label: { ko: '치료 프로그램', en: 'Treatments' } },
     { id: 'before-after', label: { ko: '건강한 미소', en: 'Healthy Smile' } },
     { id: 'process', label: { ko: '3단계 진료과정', en: 'Process' } },
     { id: 'team', label: { ko: '의료진 & 전담팀', en: 'Medical Team' } },
@@ -33,33 +32,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-40 bg-[#FCFCFA]/90 backdrop-blur-md border-b border-[#E7EBE4] transition-all">
-      {/* Top subtle announcement strip */}
-      <div className="bg-[#122A1F] text-[#E0E8E3] text-[11px] py-1.5 px-4 hidden sm:block">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 font-medium text-[#79D29B]">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>대표원장 1:1 전담 책임 진료 · 대학병원급 3D 구강스캐너 완비</span>
-            </span>
-            <span className="text-[#3A5C4A]">|</span>
-            <span className="text-[#B9CFC2] flex items-center gap-1">
-              <Clock className="w-3 h-3 text-[#79D29B]" />
-              <span>화요일 야간진료 (저녁 8:30까지) · 토요일 진료</span>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <a
-              href="tel:02-882-2875"
-              className="flex items-center gap-1.5 text-white hover:text-[#79D29B] font-semibold transition-colors"
-            >
-              <Phone className="w-3 h-3 text-[#79D29B]" />
-              <span>진료 예약 및 상담: 02-882-2875</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
       {/* Main Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
         {/* Brand Wordmark (DentArt) */}

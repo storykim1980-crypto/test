@@ -8,6 +8,7 @@ import {
   generateGoogleCalendarLink,
   Appointment 
 } from '../data/bookingService';
+import { sendBookingEmail, SendResult } from '../data/bookingEmail';
 import { 
   X, 
   Calendar, 
@@ -48,6 +49,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [phone, setPhone] = useState<string>('');
   const [symptoms, setSymptoms] = useState<string>('');
   const [confirmedBooking, setConfirmedBooking] = useState<Appointment | null>(null);
+  const [sendResult, setSendResult] = useState<SendResult | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
   // Lookup state
   const [lookupCode, setLookupCode] = useState<string>('');
@@ -80,10 +83,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     { time: '19:30', label: '07:30 PM (화 야간)' },
   ];
 
-  const handleCompleteBooking = (e: React.FormEvent) => {
+  const handleCompleteBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!patientName || !phone) return;
+    if (!patientName || !phone || isSending) return;
 
+    setIsSending(true);
+    try {
     const newAppt = saveAppointment({
       patientName,
       phone,
@@ -100,9 +105,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       estimatedPriceKrw: currentTreatment.priceKrw,
     });
 
-    setConfirmedBooking(newAppt);
-    setAllAppointments(getStoredAppointments());
-    setCurrentStep(4);
+      const result = await sendBookingEmail(newAppt);
+      setSendResult(result);
+      setConfirmedBooking(newAppt);
+      setAllAppointments(getStoredAppointments());
+      setCurrentStep(4);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleLookup = () => {
@@ -332,7 +342,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       환자 연락처 및 증상 입력
                     </h4>
                     <p className="text-xs text-[#526458] font-light">
-                      예약 확인 문자 발송을 위해 정확한 정보를 입력해 주세요.
+                      예약 확인 연락을 위해 정확한 정보를 입력해 주세요.
                     </p>
                   </div>
 
@@ -387,9 +397,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     </button>
                     <button
                       type="submit"
-                      className="bg-[#122A1F] hover:bg-[#1D3E2F] text-white px-7 py-2.5 rounded-full text-xs font-semibold shadow-md cursor-pointer"
+                      disabled={isSending}
+                      className="bg-[#122A1F] hover:bg-[#1D3E2F] text-white px-7 py-2.5 rounded-full text-xs font-semibold shadow-md cursor-pointer disabled:opacity-60"
                     >
-                      예약 신청 완료
+                      {isSending ? '예약 내용 전송 중...' : '예약 신청 완료'}
                     </button>
                   </div>
                 </form>
@@ -404,11 +415,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                   <div className="space-y-2">
                     <h4 className="font-serif text-2xl font-bold text-[#122A1F]">
-                      진료 예약 신청이 완료되었습니다
+                      진료 예약 신청이 접수되었습니다
                     </h4>
-                    <p className="text-xs text-[#526458] font-light">
-                      예약 확인 코드는 <strong className="font-mono text-[#122A1F] font-bold">{confirmedBooking.bookingCode}</strong>입니다. 
-                      담당 코디네이터가 30분 이내에 사전 확인 문자를 드립니다.
+                    <p className="text-xs text-[#526458] font-light leading-relaxed">
+                      예약 확인 코드는 <strong className="font-mono text-[#122A1F] font-bold">{confirmedBooking.bookingCode}</strong>입니다.{' '}
+                      {sendResult === 'auto' &&
+                        '신청 내용이 병원 이메일로 전송되었습니다. 확인 후 기재해 주신 연락처로 연락드리겠습니다.'}
+                      {sendResult === 'mailto' &&
+                        '예약 내용이 담긴 메일이 열렸습니다. 메일 앱에서 전송 버튼을 눌러 주시면 병원으로 신청이 접수됩니다. (전송이 어려우시면 02-882-2875로 전화 주세요)'}
+                      {(sendResult === 'unconfigured' || sendResult === null) &&
+                        '현재 온라인 접수 준비 중입니다. 예약은 전화(02-882-2875)로 연락 주시면 빠르게 도와드리겠습니다.'}
                     </p>
                   </div>
 
@@ -459,8 +475,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <h4 className="font-serif text-xl font-bold text-[#122A1F]">
                   예약 번호 조회 및 관리
                 </h4>
-                <p className="text-xs text-[#526458] font-light">
+                <p className="text-xs text-[#526458] font-light leading-relaxed">
                   발급받으신 예약 코드(예: DENT-2026-XXXX)를 입력해 주세요.
+                  <br />
+                  예약 내역은 이 기기에만 저장되며, 예약 변경·취소는 전화(02-882-2875)로 문의해 주세요.
                 </p>
               </div>
 
@@ -499,7 +517,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                           : 'bg-[#FBE8E8] text-[#C53030]'
                       }`}
                     >
-                      {lookedUpAppt.status === 'confirmed' ? '예약 확정' : '취소 완료'}
+                      {lookedUpAppt.status === 'confirmed' ? '접수됨' : '취소됨'}
                     </span>
                   </div>
 
@@ -530,6 +548,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   최근 예약 내역 ({allAppointments.length})
                 </span>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {allAppointments.length === 0 && (
+                    <p className="p-3 rounded-xl bg-white border border-[#E0E6E1] text-[11px] text-[#65796D]">
+                      이 기기에 저장된 예약 내역이 없습니다. 예약 조회·변경은 전화(02-882-2875)로 문의해 주세요.
+                    </p>
+                  )}
                   {allAppointments.map((a) => (
                     <div
                       key={a.id}

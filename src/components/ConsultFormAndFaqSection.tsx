@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { CLINIC_FAQS, TREATMENTS, Language } from '../data/clinicData';
 import { saveAppointment, generateGoogleCalendarLink, Appointment } from '../data/bookingService';
+import { sendBookingEmail, SendResult } from '../data/bookingEmail';
 import { 
   Phone, 
+  Mail,
   MapPin, 
   Clock, 
   Calendar, 
@@ -33,14 +35,19 @@ export const ConsultFormAndFaqSection: React.FC<ConsultFormProps> = ({
   const [preferredTime, setPreferredTime] = useState('10:30');
   const [symptoms, setSymptoms] = useState('');
   const [confirmedBooking, setConfirmedBooking] = useState<Appointment | null>(null);
+  const [sendResult, setSendResult] = useState<SendResult | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!patientName.trim() || !phone.trim() || !preferredDate) {
       alert('성함, 연락처, 희망 날짜를 모두 입력해 주세요.');
       return;
     }
+    if (isSending) return;
 
+    setIsSending(true);
+    try {
     const matchedTreatment = TREATMENTS.find((t) => t.id === treatmentId);
 
     const newAppt = saveAppointment({
@@ -59,7 +66,12 @@ export const ConsultFormAndFaqSection: React.FC<ConsultFormProps> = ({
       estimatedPriceKrw: matchedTreatment ? matchedTreatment.priceKrw : '진단 후 확정',
     });
 
-    setConfirmedBooking(newAppt);
+      const result = await sendBookingEmail(newAppt);
+      setSendResult(result);
+      setConfirmedBooking(newAppt);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -132,14 +144,19 @@ export const ConsultFormAndFaqSection: React.FC<ConsultFormProps> = ({
 
                 <div className="space-y-2">
                   <span className="text-xs font-bold text-[#2E6B47] uppercase tracking-wider">
-                    Appointment Requested
+                    예약 신청 접수
                   </span>
                   <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#122A1F]">
-                    상담 예약 접수가 완료되었습니다
+                    상담 예약 신청이 접수되었습니다
                   </h3>
-                  <p className="text-xs sm:text-sm text-[#4E6254] max-w-md mx-auto font-light">
-                    예약 번호 <strong className="font-mono text-[#122A1F]">{confirmedBooking.bookingCode}</strong>로 등록되었습니다. 
-                    수석 상담 실장이 기재해 주신 연락처로 일정 확인 안내 문자를 발송해 드립니다.
+                  <p className="text-xs sm:text-sm text-[#4E6254] max-w-md mx-auto font-light leading-relaxed">
+                    예약 번호 <strong className="font-mono text-[#122A1F]">{confirmedBooking.bookingCode}</strong>로 접수되었습니다.{' '}
+                    {sendResult === 'auto' &&
+                      '신청 내용이 병원 이메일로 전송되었습니다. 확인 후 기재해 주신 연락처로 연락드리겠습니다.'}
+                    {sendResult === 'mailto' &&
+                      '예약 내용이 담긴 메일이 열렸습니다. 메일 앱에서 전송 버튼을 눌러 주시면 병원으로 신청이 접수됩니다. (전송이 어려우시면 02-882-2875로 전화 주세요)'}
+                    {(sendResult === 'unconfigured' || sendResult === null) &&
+                      '현재 온라인 접수 준비 중입니다. 예약은 전화(02-882-2875)로 연락 주시면 빠르게 도와드리겠습니다.'}
                   </p>
                 </div>
 
@@ -184,7 +201,7 @@ export const ConsultFormAndFaqSection: React.FC<ConsultFormProps> = ({
                     간편 상담 및 진료 예약 신청
                   </h3>
                   <p className="text-xs text-[#526458] font-light">
-                    아래 항목을 작성해 주시면 담당 코디네이터가 30분 이내에 예약 확정 안내를 드립니다.
+                    아래 항목을 작성해 주시면 확인 후 기재해 주신 연락처로 빠르게 연락드리겠습니다.
                   </p>
                 </div>
 
@@ -290,10 +307,11 @@ export const ConsultFormAndFaqSection: React.FC<ConsultFormProps> = ({
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full bg-[#122A1F] hover:bg-[#1D3E2F] text-white py-3.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                    disabled={isSending}
+                    className="w-full bg-[#122A1F] hover:bg-[#1D3E2F] text-white py-3.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
                   >
                     <Calendar className="w-4 h-4 text-[#79D29B]" />
-                    <span>상담 및 예약 신청서 전송</span>
+                    <span>{isSending ? '예약 내용 전송 중...' : '상담 및 예약 신청서 전송'}</span>
                   </button>
                 </div>
               </form>
@@ -301,50 +319,75 @@ export const ConsultFormAndFaqSection: React.FC<ConsultFormProps> = ({
           </div>
         </div>
 
-        {/* Bottom Split: Clinical FAQ Accordion */}
-        <div className="space-y-8 pt-8 border-t border-[#E7EBE4]">
-          <div className="max-w-2xl space-y-3">
-            <span className="text-xs font-semibold tracking-wider uppercase text-[#1D4A32] bg-[#EBF1EC] px-3.5 py-1 rounded-full border border-[#D5E2D8]">
-              Frequently Asked Questions
-            </span>
-            <h3 className="font-serif text-3xl sm:text-4xl font-bold text-[#122A1F]">
-              환자분들이 가장 자주 묻는 질문
-            </h3>
-            <p className="text-xs sm:text-sm text-[#526558] font-light">
-              치과 방문 전 궁금하셨던 점들을 전문의가 알기 쉽게 답변해 드립니다.
-            </p>
-          </div>
+        {/* Bottom Split: FAQ (bbb-style two column) */}
+        <div className="pt-8 border-t border-[#E7EBE4]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+            {/* Left: Title & Contact */}
+            <div className="lg:col-span-4 flex flex-col">
+              <span className="block text-xs font-semibold tracking-[0.22em] uppercase text-[#6B7C71]">
+                DentArt Clinic · FAQ
+              </span>
+              <h3 className="mt-4 text-4xl sm:text-[2.75rem] leading-[1.15] font-bold tracking-tight text-[#122A1F] break-keep">
+                자주 묻는 질문 (FAQ)
+              </h3>
+              <p className="mt-4 text-sm text-[#526558] font-light leading-relaxed break-keep">
+                내원 전 환자분들이 가장 많이 궁금해하시는 항목들을 정리했습니다
+              </p>
 
-          <div className="space-y-3 max-w-4xl">
-            {CLINIC_FAQS.map((faq, index) => {
-              const isOpen = openFaqIndex === index;
-              return (
-                <div
-                  key={index}
-                  className="rounded-2xl border border-[#DDE5DF] overflow-hidden bg-[#FAF9F5] transition-colors"
+              <div className="mt-8 pt-7 border-t border-[#E7EBE4] space-y-3.5">
+                <a
+                  href="tel:02-882-2875"
+                  className="flex items-center gap-2.5 text-sm font-medium text-[#122A1F] hover:text-[#2E6B47] transition-colors"
                 >
-                  <button
-                    onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                    className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 cursor-pointer focus:outline-none"
-                  >
-                    <span className="font-serif text-base font-bold text-[#122A1F] leading-snug">
-                      {faq.q}
-                    </span>
-                    <div className="w-8 h-8 rounded-full bg-white border border-[#CBD6CE] flex items-center justify-center shrink-0 text-[#122A1F]">
-                      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </div>
-                  </button>
+                  <Phone className="w-4 h-4 text-[#2E6B47] shrink-0" />
+                  <span>02-882-2875 (강남 본원)</span>
+                </a>
+                <a
+                  href="mailto:contact@dentart-studio.com"
+                  className="flex items-center gap-2.5 text-sm font-medium text-[#122A1F] hover:text-[#2E6B47] transition-colors break-all"
+                >
+                  <Mail className="w-4 h-4 text-[#2E6B47] shrink-0" />
+                  <span>contact@dentart-studio.com</span>
+                </a>
+              </div>
+            </div>
 
-                  {isOpen && (
-                    <div className="px-5 sm:px-6 pb-6 pt-1 border-t border-[#E7ECE4] bg-white">
-                      <p className="text-xs sm:text-sm text-[#4E6254] font-light leading-relaxed">
-                        {faq.a}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {/* Right: FAQ Accordion */}
+            <div className="lg:col-span-8 space-y-3">
+              {CLINIC_FAQS.map((faq, index) => {
+                const isOpen = openFaqIndex === index;
+                return (
+                  <div
+                    key={index}
+                    className={`rounded-2xl border overflow-hidden transition-colors ${
+                      isOpen
+                        ? 'border-[#CBD6CE] bg-white'
+                        : 'border-[#DDE5DF] bg-[#FAF9F5]'
+                    }`}
+                  >
+                    <button
+                      onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                      className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 cursor-pointer focus:outline-none"
+                    >
+                      <span className="font-serif text-base font-bold text-[#122A1F] leading-snug break-keep">
+                        {faq.q}
+                      </span>
+                      <div className="w-8 h-8 rounded-full bg-white border border-[#CBD6CE] flex items-center justify-center shrink-0 text-[#122A1F]">
+                        {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-5 sm:px-6 pb-6 pt-1 border-t border-[#E7ECE4]">
+                        <p className="text-xs sm:text-sm text-[#4E6254] font-light leading-relaxed break-keep">
+                          {faq.a}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
