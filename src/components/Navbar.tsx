@@ -4,7 +4,6 @@ import { Phone, Calendar, Menu, X, Sparkles, Clock } from 'lucide-react';
 
 interface NavbarProps {
   currentLang: Language;
-  onLanguageChange: (lang: Language) => void;
   onOpenBooking: (treatmentId?: string) => void;
   activeSection: string;
   onNavigate: (sectionId: string) => void;
@@ -12,7 +11,6 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentLang,
-  onLanguageChange,
   onOpenBooking,
   activeSection,
   onNavigate,
@@ -21,8 +19,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = [
     { id: 'treatments', label: { ko: '치료 프로그램', en: 'Treatments' } },
-    { id: 'before-after', label: { ko: '치료 전후', en: 'Before & After' } },
-    { id: 'process', label: { ko: '3-Step 진료과정', en: 'Process' } },
+    { id: 'before-after', label: { ko: '건강한 미소', en: 'Healthy Smile' } },
+    { id: 'process', label: { ko: '3단계 진료과정', en: 'Process' } },
     { id: 'team', label: { ko: '의료진 & 전담팀', en: 'Medical Team' } },
     { id: 'pricing', label: { ko: '비용 & 보증제', en: 'Fees & Warranty' } },
     { id: 'faq', label: { ko: '자주 묻는 질문', en: 'FAQ' } },
@@ -82,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
             <p className="text-[10px] text-[#55695D] font-light tracking-wide">
-              Aesthetic & Restorative Dental Studio
+              자연치아 보존 · 편안한 치과 진료
             </p>
           </div>
         </button>
@@ -106,37 +104,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Action Zone */}
         <div className="hidden sm:flex items-center gap-4">
-          {/* Language Toggle */}
-          <div className="flex items-center bg-[#EBF0E9] rounded-full p-1 text-xs font-semibold">
-            <button
-              onClick={() => onLanguageChange('ko')}
-              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-                currentLang === 'ko'
-                  ? 'bg-white text-[#122A1F] shadow-xs'
-                  : 'text-[#5C7063] hover:text-[#122A1F]'
-              }`}
-            >
-              KR
-            </button>
-            <button
-              onClick={() => onLanguageChange('en')}
-              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-                currentLang === 'en'
-                  ? 'bg-white text-[#122A1F] shadow-xs'
-                  : 'text-[#5C7063] hover:text-[#122A1F]'
-              }`}
-            >
-              EN
-            </button>
-          </div>
-
           {/* Book Consultation CTA Button */}
           <button
             onClick={() => onOpenBooking()}
             className="inline-flex items-center gap-2 bg-[#122A1F] hover:bg-[#1D3E2F] text-white px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-sm hover:shadow-md cursor-pointer"
           >
             <Calendar className="w-4 h-4 text-[#79D29B]" />
-            <span>{currentLang === 'ko' ? '상담 및 예약' : 'Book a Consult'}</span>
+            <span>상담 및 예약</span>
           </button>
         </div>
 
@@ -151,7 +125,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl text-[#122A1F] hover:bg-[#EBF0E9] transition-colors focus:outline-none"
-            aria-label="Toggle navigation"
+            aria-label="메뉴 열기 및 닫기"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -175,24 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           <div className="pt-2 flex items-center justify-between gap-3">
-            <div className="flex items-center bg-[#EBF0E9] rounded-full p-1 text-xs font-semibold">
-              <button
-                onClick={() => onLanguageChange('ko')}
-                className={`px-3 py-1 rounded-full ${
-                  currentLang === 'ko' ? 'bg-white text-[#122A1F]' : 'text-[#5C7063]'
-                }`}
-              >
-                한국어
-              </button>
-              <button
-                onClick={() => onLanguageChange('en')}
-                className={`px-3 py-1 rounded-full ${
-                  currentLang === 'en' ? 'bg-white text-[#122A1F]' : 'text-[#5C7063]'
-                }`}
-              >
-                English
-              </button>
-            </div>
+
 
             <button
               onClick={() => {

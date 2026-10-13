@@ -12,7 +12,7 @@ import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
 
 export default function App() {
-  const [currentLang, setCurrentLang] = useState<Language>('ko');
+  const currentLang: Language = 'ko';
   const [activeSection, setActiveSection] = useState<string>('hero');
   
   // Interactive Booking Modal
@@ -39,7 +39,6 @@ export default function App() {
       {/* 1. Header Navigation Bar */}
       <Navbar
         currentLang={currentLang}
-        onLanguageChange={setCurrentLang}
         onOpenBooking={() => handleOpenBooking()}
         activeSection={activeSection}
         onNavigate={handleNavigate}
