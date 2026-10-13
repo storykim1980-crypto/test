@@ -24,7 +24,7 @@ export const RecentWorkSliderSection: React.FC<RecentWorkSliderProps> = ({
         <div className="max-w-3xl space-y-3.5">
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-[#1D4A32] bg-[#EBF1EC] px-3.5 py-1.5 rounded-full border border-[#D5E2D8]">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Healthy Smile & Everyday Care</span>
+            <span>건강한 미소 · 일상 케어</span>
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#122A1F] tracking-tight">
             {ko ? '건강한 미소를 위한 첫걸음' : 'Your first step toward a healthy smile'}

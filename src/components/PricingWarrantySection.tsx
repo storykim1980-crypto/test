@@ -21,7 +21,7 @@ export const PricingWarrantySection: React.FC<PricingWarrantyProps> = ({
           <div className="max-w-3xl space-y-3.5">
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-[#1D4A32] bg-[#EBF1EC] px-3.5 py-1.5 rounded-full border border-[#D5E2D8]">
               <Sparkles className="w-3.5 h-3.5 text-[#2E6B47]" />
-              <span>Transparent Fees & Warranty</span>
+              <span>투명한 비용 & 보증제</span>
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#122A1F] tracking-tight">
               투명 정찰 진료비 & 품질보증제

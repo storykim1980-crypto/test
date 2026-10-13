@@ -110,7 +110,7 @@ export const Footer: React.FC<FooterProps> = ({
               <div className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-[#79D29B] shrink-0 mt-0.5" />
                 <div className="leading-relaxed">
-                  <p>평일: 09:30 - 18:30 (점심시간 13:00 - 14:00)</p>
+                  <p>월·수·목·금: 09:30 - 18:30 (점심시간 13:00 - 14:00)</p>
                   <p><strong className="text-[#79D29B] font-semibold">화요일 야간진료: 09:30 - 20:30</strong></p>
                   <p>토요일: 09:30 - 14:00 (점심시간 없이 진료)</p>
                   <p className="text-[11px] text-[#7A9988]">일요일 및 공휴일 휴진</p>
@@ -120,7 +120,15 @@ export const Footer: React.FC<FooterProps> = ({
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#79D29B] shrink-0 mt-0.5" />
                 <p className="leading-relaxed break-keep">
-                  서울 강남구 테헤란로 152 강남타워 4층<br />
+                  <a
+                    href="https://map.kakao.com/?q=%EC%84%9C%EC%9A%B8%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%ED%85%8C%ED%97%A4%EB%9E%80%EB%A1%9C%20152%20%EA%B0%95%EB%82%A8%ED%83%80%EC%9B%8C"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:text-white underline underline-offset-4 decoration-[#3A5C4A]"
+                  >
+                    서울 강남구 테헤란로 152 강남타워 4층
+                  </a>
+                  <br />
                   (지하철 2호선 역삼역 3번 출구 도보 1분 · 건물 내 무료 발렛 주차)
                 </p>
               </div>

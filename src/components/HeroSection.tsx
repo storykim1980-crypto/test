@@ -5,13 +5,13 @@ import { ArrowDown, Calendar, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide
 interface HeroSectionProps {
   currentLang: Language;
   onOpenBooking: () => void;
-  onExploreTreatments: () => void;
+  onExplorePricing: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   currentLang,
   onOpenBooking,
-  onExploreTreatments,
+  onExplorePricing,
 }) => {
   return (
     <section className="relative pt-12 pb-20 bg-gradient-to-b from-[#FAF9F5] via-[#FCFCFA] to-white border-b border-[#E7EBE4] overflow-hidden">
@@ -20,7 +20,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="max-w-3xl space-y-5 mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase bg-[#EBF1EC] text-[#1D4A32] border border-[#D5E2D8]">
             <Sparkles className="w-3.5 h-3.5 text-[#2E6B47]" />
-            <span>Specialized Treatments & Aesthetic Care</span>
+            <span>자연치아 보존 · 심미 치료</span>
           </div>
 
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-[#122A1F] tracking-tight leading-[1.18]">
@@ -36,10 +36,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           {/* Action CTAs */}
           <div className="pt-2 flex flex-wrap items-center gap-4">
             <button
-              onClick={onExploreTreatments}
+              onClick={onExplorePricing}
               className="inline-flex items-center gap-2 bg-[#122A1F] hover:bg-[#1D3E2F] text-white px-7 py-3.5 rounded-full text-sm font-semibold tracking-wide transition-all shadow-md hover:shadow-lg cursor-pointer group"
             >
-              <span>치료 프로그램 자세히 보기</span>
+              <span>진료 비용 &amp; 보증제 보기</span>
               <ArrowDown className="w-4 h-4 text-[#79D29B] group-hover:translate-y-0.5 transition-transform" />
             </button>
 

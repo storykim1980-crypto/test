@@ -84,7 +84,7 @@ export const ConsultFormAndFaqSection: React.FC<ConsultFormProps> = ({
             <div className="space-y-4">
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-[#79D29B] bg-[#1D3E2F] px-3.5 py-1 rounded-full">
                 <Sparkles className="w-3 h-3 text-[#79D29B]" />
-                <span>Book a Professional Consult</span>
+                <span>1:1 전문의 상담 예약</span>
               </span>
 
               <h2 className="font-serif text-3xl sm:text-4xl font-bold leading-tight">

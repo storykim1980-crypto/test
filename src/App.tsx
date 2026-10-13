@@ -49,7 +49,7 @@ export default function App() {
           <HeroSection
             currentLang={currentLang}
             onOpenBooking={() => handleOpenBooking()}
-            onExploreTreatments={() => handleNavigate('treatments')}
+            onExplorePricing={() => handleNavigate('pricing')}
           />
         </div>
 
